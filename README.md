@@ -1,4 +1,4 @@
-# How does a computer calculate sin(x)? 🧮
+# How does a computer calculate sin(x)? 
 
 Have you ever wondered what happens "under the hood" when you call a trigonometric function in your code?
 
@@ -8,7 +8,7 @@ functions using simple polynomials.
 
 ## Project demo site
 Available here:
-**[SITE]()**
+**[SITE](https://alwaez01.github.io/TaylorSeries-R-Project/#fig-approx)**
 
 ## License
 This project is open source and distributed under the MIT license - see the [LICENSE](LICENSE) file for details.
