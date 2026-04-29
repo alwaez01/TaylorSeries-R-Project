@@ -8,7 +8,10 @@ functions using simple polynomials.
 
 ## Project demo site
 Available here:
-**[SITE](https://alwaez01.github.io/TaylorSeries-R-Project/#fig-approx)**
+
+**[SITE](https://alwaez01.github.io/TaylorSeries-R-Project)**
+
+**[PRESENTATION](https://alwaez01.github.io/TaylorSeries-R-Project/slides)**
 
 ## License
 This project is open source and distributed under the MIT license - see the [LICENSE](LICENSE) file for details.
