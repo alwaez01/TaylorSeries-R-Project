@@ -1,0 +1,254 @@
+---
+title: "How Does a Computer Calculate sin(x)?"
+author: "Yaroslav Vakula"
+format:
+  revealjs:
+    theme: simple
+    transition: slide
+    slide-number: true
+    fig-align: "center"
+    output-file: slides.html
+
+execute:
+  echo: false
+---
+
+## The Problem
+
+Your calculator always returns a value for $\sin(x)$.
+
+. . .
+
+But how does it actually compute it?
+
+. . .
+
+- A computer **cannot** reason geometrically
+- It only knows how to **add, subtract, and multiply**
+- It needs an arithmetic recipe --- not a geometric one
+
+## The Key Idea: Polynomials
+
+A polynomial uses only addition, subtraction, and 
+multiplication:
+
+$$p(x) = a_0 + a_1 x + a_2 x^2 + \cdots + a_n x^n$$
+
+. . .
+
+**Any processor can evaluate a polynomial efficiently.**
+
+. . .
+
+So if $\sin(x)$ can be written as a polynomial --- the problem 
+is solved.
+
+## Taylor Series
+
+Any smooth function can be written as an infinite sum of 
+polynomial terms [@stewart2008calculus]:
+
+$$f(x) = \sum_{n=0}^{\infty} \frac{f^{(n)}(a)}{n!}(x - a)^n$$
+
+. . .
+
+- $f^{(n)}(a)$ --- the $n$-th derivative of $f$ at point $a$
+- Each new term **refines** the approximation
+- Factorials grow fast $\rightarrow$ terms shrink fast $\rightarrow$ few terms needed in practice
+
+## Maclaurin Series
+
+Setting $a = 0$ gives the **Maclaurin series** --- the form used 
+in most computing environments:
+
+$$f(x) = \sum_{n=0}^{\infty} \frac{f^{(n)}(0)}{n!} \, x^n$$
+
+. . .
+
+**Advantages:**
+
+- All derivatives evaluated at $0$ $\rightarrow$ simpler coefficients
+- Very accurate when $|x|$ is small
+
+. . .
+
+**Drawback:** accuracy decreases as $|x|$ grows
+
+## Expansion of $\sin(x)$
+
+The derivatives of $\sin(x)$ cycle through four forms:
+$$\sin \to \cos \to -\sin \to -\cos \to \cdots$$
+
+. . .
+
+At $x = 0$: sine-based terms vanish $(\sin(0) = 0)$, cosine-based equal $\pm 1$.
+
+Only **odd powers** survive:
+
+$$\sin(x) = x - \frac{x^3}{3!} + \frac{x^5}{5!} - \frac{x^7}{7!} + \cdots$$
+
+## Approximation Error
+
+In practice, we stop after $n$ terms. The error is:
+
+$$R_n(x) = f(x) - T_n(x)$$
+
+. . .
+
+The **Lagrange remainder** [@wiki_taylor] gives an upper bound:
+
+$$R_n(x) = \frac{f^{(n+1)}(\xi)}{(n+1)!} x^{n+1}, \quad \xi \in (0,\, x)$$
+
+. . .
+
+$$|R_n(x)| \le \left| \frac{x^{n+1}}{(n+1)!} \right|$$
+
+## What the Error Bound Tells Us
+
+$$|R_n(x)| \le \left| \frac{x^{n+1}}{(n+1)!} \right|$$
+
+. . .
+
+**Near zero** ($|x|$ small): $x^{n+1}$ is tiny $\rightarrow$ error is tiny
+
+. . .
+
+**Adding more terms** (larger $n$): $(n+1)!$ grows explosively 
+$\rightarrow$ error shrinks fast
+
+. . .
+
+Both effects work in our favour near $x = 0$.
+
+## Visualization {.smaller}
+
+```{r}
+#| label: setup
+
+library(ggplot2)
+library(dplyr)
+library(plotly)
+
+taylor_sin <- function(x, degree) {
+  n_terms <- (degree + 1L) %/% 2L
+  sapply(x, function(xi) {
+    k <- seq_len(n_terms) - 1L
+    sum((-1)^k * xi^(2*k + 1) / factorial(2*k + 1))
+  })
+}
+
+x_vals <- seq(-2 * pi, 2 * pi, length.out = 500)
+```
+
+```{r}
+#| label: fig-approx
+#| fig-cap: "sin(x) and Taylor polynomial approximations for degrees 1 to 13"
+
+degrees_ext <- seq(1, 13, by = 2)
+colors_ext  <- c("#E41A1C","#FF7F00","#4DAF4A","#377EB8","#984EA3","#A65628","#F781BF")
+
+fig_approx <- plot_ly()
+
+fig_approx <- add_trace(fig_approx,
+  x = x_vals, y = sin(x_vals),
+  type = "scatter", mode = "lines", name = "sin(x)",
+  line = list(color = "black", width = 2.5, dash = "dash")
+)
+
+for (i in seq_along(degrees_ext)) {
+  d <- degrees_ext[i]
+  fig_approx <- add_trace(fig_approx,
+    x = x_vals, y = taylor_sin(x_vals, d),
+    type = "scatter", mode = "lines",
+    name = paste0("n = ", d),
+    line = list(color = colors_ext[i], width = 1.6)
+  )
+}
+
+layout(fig_approx,
+  xaxis  = list(title = "x",
+                tickvals = list(-2*pi, -pi, 0, pi, 2*pi),
+                ticktext = list("-2π", "-π", "0", "π", "2π")),
+  yaxis  = list(title = "y", range = c(-3, 3)),
+  legend = list(x = 1.01, y = 0.99, xanchor = "left"),
+  margin = list(r = 130)
+)
+```
+
+## How Many Terms Are Needed? {.smaller}
+
+```{r}
+#| label: tbl-convergence
+#| tbl-cap: "Minimum polynomial degree to approximate sin(x) within a given accuracy"
+
+find_min_degree <- function(x_val, tol) {
+  n <- 1
+  while (TRUE) {
+    if (abs(sin(x_val) - taylor_sin(x_val, n)) < tol)
+      return(paste0("$n = ", n, "$"))
+    n <- n + 2
+  }
+}
+
+x_vals_target <- c(0.5, 1.0, 2.0, pi, 2*pi, 3*pi)
+x_labels      <- c("0.5", "1.0", "2.0", "$\\pi$", "2$\\pi$", "3$\\pi$")
+
+knitr::kable(
+  data.frame(
+    x       = x_labels,
+    acc_e3  = sapply(x_vals_target, find_min_degree, tol = 1e-3),
+    acc_e6  = sapply(x_vals_target, find_min_degree, tol = 1e-6),
+    acc_e12 = sapply(x_vals_target, find_min_degree, tol = 1e-12)
+  ),
+  col.names = c("$x$", "$10^{-3}$", "$10^{-6}$", "$10^{-12}$"),
+  align = c("c","c","c","c"),
+  escape = FALSE
+)
+```
+
+The required degree **grows with** $|x|$.
+
+## Why Convergence Slows Down
+
+The ratio of consecutive terms explains the pattern:
+
+$$\frac{a_{k+1}}{a_k} = \frac{x^2}{(2k+3)(2k+2)}
+ \approx \frac{x^2}{n^2}$$
+
+. . .
+
+- **Small** $x$: ratio $\ll 1$ $\rightarrow$ series collapses in a few 
+terms
+- **Large** $x$: ratio $\approx 1$ for many terms $\rightarrow$ slow 
+convergence
+
+. . .
+
+This is why real processors use **range reduction** first:
+
+$$\sin(x + 2\pi) = \sin(x)$$
+
+## Conclusion
+
+**How does a computer calculate $\sin(x)$?**
+
+. . .
+
+$$\sin(x) = x - \frac{x^3}{3!} + \frac{x^5}{5!} - \frac{x^7}{7!} + \cdots$$
+
+. . .
+
+- Only odd powers of $x$, divided by factorials --- nothing 
+exotic
+- Highly accurate near $x = 0$ with very few terms
+- Range reduction extends this to all inputs
+
+. . .
+
+**The big idea:** even the most complex functions can be 
+pinned down using nothing but addition and multiplication.
+
+## References
+
+::: {#refs}
+:::

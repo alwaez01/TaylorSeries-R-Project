@@ -1,0 +1,11 @@
+project:
+  type: default
+  output-dir: ../docs
+
+execute:
+  echo: true
+  warning: false
+  message: false
+  
+bibliography: references.bib
+csl: iso690-numeric-en.csl
