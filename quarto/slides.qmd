@@ -46,7 +46,7 @@ is solved.
 ## Taylor Series
 
 Any smooth function can be written as an infinite sum of 
-polynomial terms [@stewart2008calculus]:
+polynomial terms [@stewart2014calculus]:
 
 $$f(x) = \sum_{n=0}^{\infty} \frac{f^{(n)}(a)}{n!}(x - a)^n$$
 

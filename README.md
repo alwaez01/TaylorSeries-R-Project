@@ -13,5 +13,7 @@ Available here:
 
 **[PRESENTATION](https://alwaez01.github.io/TaylorSeries-R-Project/slides)**
 
+**[DASHBOARD](https://alwaez01.github.io/TaylorSeries-R-Project/dashboard)**
+
 ## License
 This project is open source and distributed under the MIT license - see the [LICENSE](LICENSE) file for details.

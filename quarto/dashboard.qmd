@@ -1,0 +1,92 @@
+---
+title: "How Does a Computer Calculate sin(x)?"
+author: "Yaroslav Vakula"
+format: 
+  dashboard:
+    theme: cosmo
+    orientation: columns
+execute:
+  echo: false
+---
+
+```{r setup, include=FALSE}
+library(plotly)
+library(dplyr)
+library(tidyr)
+library(knitr)
+
+taylor_sin <- function(x, degree) {
+  n_terms <- (degree + 1L) %/% 2L
+  sapply(x, function(xi) {
+    k <- seq_len(n_terms) - 1L
+    sum((-1)^k * xi^(2*k + 1) / factorial(2*k + 1))
+  })
+}
+
+x_vals  <- seq(-2 * pi, 2 * pi, length.out = 500)
+degrees_ext <- seq(1, 13, by = 2)
+colors_ext <- c("#E41A1C", "#FF7F00", "#4DAF4A", "#377EB8", "#984EA3", "#A65628", "#F781BF")
+```
+
+## Column {width=20%}
+
+### Statistics {.sidebar}
+
+This dashboard analyzes the approximation of $\sin(x)$ using 
+**Maclaurin series**.
+
+**Key Features:**
+
+- Interactive visualization of polynomial convergence.
+
+- Analysis across the interval $[-2\pi, 2\pi]$.
+
+The Maclaurin series is defined as:
+$$\sin(x) \approx \sum_{n=0}^{N} \frac{(-1)^n x^{2n+1}}{(2n+1)!}$$
+
+**Technical Insight:**
+
+For $n=13$, the approximation is virtually indistinguishable
+from the actual function in the range $[-\pi, \pi]$. However, 
+note how quickly the error grows outside this "safe" zone.
+
+::: {.valuebox icon="calculator" color="primary"}
+Target Function
+`sin(x)`
+:::
+
+## Column {width=80%}
+
+### Interactive Approximation {height=60%}
+```{r}
+#| title: "Convergence of Taylor Polynomials"
+
+fig_approx <- plot_ly()
+
+fig_approx <- add_trace(fig_approx,
+  x    = x_vals,
+  y    = sin(x_vals),
+  type = "scatter",
+  mode = "lines",
+  name = "sin(x)",
+  line = list(color = "black", width = 2.5, dash = "dash")
+)
+
+for (i in seq_along(degrees_ext)) {
+  d <- degrees_ext[i]
+  fig_approx <- add_trace(fig_approx,
+    x    = x_vals,
+    y    = taylor_sin(x_vals, d),
+    type = "scatter",
+    mode = "lines",
+    name = paste0("n = ", d),
+    line = list(color = colors_ext[i], width = 1.6)
+  )
+}
+
+layout(fig_approx,
+  xaxis = list(title = "x (radians)"),
+  yaxis = list(title = "y", range = c(-3, 3)),
+  hovermode = "x unified"
+)
+```

@@ -5,6 +5,10 @@
   },
   "how_computer_calculates_sin.qmd": {
     "index.html": "2d33a50e",
-    "slides.html": "5c1bc1ea"
+    "slides.html": "5c1bc1ea",
+    "how_computer_calculates_sin.tex": "f86b18f5"
+  },
+  "dashboard.qmd": {
+    "dashboard.html": "daa5eb0f"
   }
 }

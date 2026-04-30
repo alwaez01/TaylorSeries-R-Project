@@ -8,4 +8,4 @@ execute:
   message: false
   
 bibliography: references.bib
-csl: iso690-numeric-en.csl
+csl: ieee.csl
